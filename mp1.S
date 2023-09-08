@@ -1,4 +1,3 @@
-
 # mp1.S - missile-command version
 # Good luck, and have fun!
 
@@ -254,6 +253,98 @@ mp1_ioctl_addmissile:
 		ret
 
 mp1_ioctl_movexhairs:
+
+mp1_ioctl_startgame:
+	pushl %ebp
+	movl %esp, %ebp 
+	pushl %ebx
+	pushl %esi
+	pushl %edi
+
+	movl $40, crosshairs_x
+	movl $12, crosshairs_y
+	movl $0, mp1_missile_list
+	movl $0, mp1_score
+	movl $BASE_n, base_alive
+
+	popl %ebx
+	popl %esi
+	popl %ebx
+	leave
+		ret
+
+mp1_ioctl_addmissile:
+	
+		ret
+
+mp1_ioctl_movexhairs:
+	pushl %ebp
+	movl %esp, %ebp 
+	pushl %ebx
+	pushl %esi
+	pushl %edi
+
+	movl (crosshairs_x),%ebx  # edx -> x
+	movl (crosshairs_y),%esi # esi -> y	
+
+	imul $160, %esi
+	imul $2, %ebx
+	addl %esi,%ebx
+	movl %ebx, %eax
+	movb $0x20,%cl # print space
+	
+	pushl %edx
+	call mp1_poke
+	popl %edx
+
+	movl 8(%ebp), %ebx # ebx -> local variable
+
+	movl %ebx, %esi 
+	movswl %bx , %ebx # high 16 ebx -> x +
+	sarl  $16, %esi # %esi -> y +
+	
+	movl (crosshairs_x), %edi 
+	addl %edi , %ebx
+	movl (crosshairs_y), %ecx
+	addl %ecx, %esi
+
+	cmpl $0, %ebx # x<0
+	jnl skip_checky
+	movl $0, %ebx
+skip_checky:
+
+	cmpl $79,%ebx # x>76
+	jng skip_checky2
+	movl $79, %ebx
+	
+skip_checky2:
+	
+	cmpl $0, %esi # y<0
+	jnl skipy
+	movl $0, %esi
+skipy:
+	cmpl $24, %esi # y>24
+	jng skipy2
+	movl $24, %esi
+skipy2:
+
+	movl %ebx , crosshairs_x
+	movl %esi, crosshairs_y
+
+	imul $160, %esi
+	imul $2, %ebx
+	addl %ebx, %esi
+	movl %esi, %eax
+	movb $43, %cl
+	pushl %edx
+	call mp1_poke
+	popl %edx
+
+	popl %ebx
+	popl %esi
+	popl %ebx
+	movl $0, %eax
+	leave
 		ret
 
 mp1_ioctl_getstatus:
